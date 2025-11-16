@@ -115,12 +115,8 @@ function draw() {
   // --------------------------
 
   DotSystem.drawBackgroundDots(backgroundDots);
-  for (const arc of beadArcs) {arc.display();
-  }
-
-  for (const w of wheels) {
-    w.display();
-  }
+  for (const arc of beadArcs) arc.display();
+  for (const w of wheels) w.display();
 
   // Optional debug overlay (disabled by default):
   // fill(0, 0, 100);
@@ -138,17 +134,14 @@ function keyPressed() {
   if (key === "R" || key === "r") {
     const same = keyIsDown(SHIFT);
     regenerate(same);
-
-    // R only regenerates the static image; it does not start playback automatically.
-    // If the song is not playing, we keep the sketch in noLoop() mode and just draw one frame.
+  }
+    
     if (!song.isPlaying()) {
       noLoop();
       redraw();
     }
-  }
 
   if (key === "S" || key === "s") {
-    // Standard p5 saveCanvas() usage, seen in earlier examples.
     saveCanvas("wheels_of_fortune_audio", "png");
   }
 }
@@ -186,7 +179,7 @@ function togglePlay() {
 // ======================================================
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  regenerate(true); // keep the same seed, just adapt to new size
+  regenerate(true); 
 
   // Reposition Play/Pause button to stay centred at the bottom
   if (playButton) {
@@ -213,34 +206,22 @@ function windowResized() {
 //         https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators
 // ======================================================
 function newSeed() {
-  // Combine different time-based sources and random() using bitwise operators
-  // to generate a 32-bit unsigned integer seed.
-  SEED =
-    (Date.now() ^
-      Math.floor(performance.now() * 1000) ^
-      Math.floor(Math.random() * 1e9)) >>>
-    0;
+  SEED = (Date.now() ^ Math.floor(performance.now() * 1000) ^ Math.floor(Math.random() * 1e9)) >>> 0;
 }
 
 function regenerate(keepSameSeed = false) {
   if (!keepSameSeed) newSeed();
   randomSeed(SEED);
-  noiseSeed(SEED); // noiseSeed is standard p5.js, used for deterministic noise patterns.
+  noiseSeed(SEED); 
 
-  // Use LayoutSystem to generate wheels, bead arcs and background dots.
-  // This modular organisation (LayoutSystem, Wheel, etc.) matches the group static version.
   wheels = LayoutSystem.generateWheels();
   beadArcs = LayoutSystem.generateBeadArcs(wheels, 2);
   backgroundDots = LayoutSystem.generateBackgroundDots(wheels);
-
-  // In noLoop mode we need to explicitly call redraw() to display one frame.
   redraw();
 }
 
 // ======================================================
 // Part 1. PaletteSystem — colour system
-// • Simple palette + small random variations in hue/saturation/brightness.
-// • This is a straightforward extension of the colour ideas seen in class.
 // ======================================================
 
 const PaletteSystem = {
@@ -254,7 +235,6 @@ const PaletteSystem = {
     [0,   0,  15]   // black
   ],
 
-  // Pick a colour from the base palette and add small variation (hue jitter, etc.)
   pick() {
     const p = this.basePalette[int(random(this.basePalette.length))];
     let h = (p[0] + random(-8, 8) + 360) % 360;
@@ -266,11 +246,9 @@ const PaletteSystem = {
 
 // ======================================================
 // Part 2. DotSystem — background dots & ring dots
-// • Uses ideas from class: loops, random(), and simple geometry.
 // ======================================================
 
 const DotSystem = {
-  // Generate dots arranged in a ring, used for "dots" wheel layers
   makeRingDots(rad) {
     const count = int(map(rad, 20, 220, 16, 32)); // more dots for larger rings
     const dotR  = rad * 0.10;
@@ -283,7 +261,6 @@ const DotSystem = {
     return dots;
   },
 
-  // Generate scattered background dots, avoiding the interior of wheels
   generateBackgroundDots(wheels) {
     const dots = [];
     const step = min(width, height) / 28;
@@ -322,7 +299,6 @@ const DotSystem = {
     return dots;
   },
 
-  // Draw background dots, radius scaled by bgScale (audio-driven)
   drawBackgroundDots(dots) {
     for (const d of dots) {
       fill(d.c);
@@ -379,7 +355,6 @@ class Wheel {
     };
   }
 
-  // Radius used for drawing (no breathing/noise, purely static)
   getEffectiveR() {
     return this.baseR;
   }
@@ -576,12 +551,9 @@ class BeadArc {
 
 // ======================================================
 // Part 4. LayoutSystem — layout of wheels, arcs, dots
-// • This module arranges wheels across the canvas & decides which wheels are connected.
-// • Uses standard ideas from generative design (grids, random offsets, distance checks).
 // ======================================================
 
 const LayoutSystem = {
-  // Generate a set of non-overlapping wheels in a loose grid
   generateWheels() {
     const wheelsOut = [];
     const unit = min(width, height) / 9;
@@ -597,7 +569,7 @@ const LayoutSystem = {
             (j + 0.5) * unit + random(-unit * 0.25, unit * 0.25);
           const r = unit * random(0.55, 1.05);
 
-          // Avoid overlapping wheels by checking distances
+          // Avoid overlapping wheels
           let ok = true;
           for (const w of wheelsOut) {
             if (dist(cx, cy, w.x, w.y) < (r + w.baseR) * 0.85) {
@@ -612,11 +584,6 @@ const LayoutSystem = {
     return wheelsOut;
   },
 
-  // Generate bead arcs between nearby wheels
-  // Uses Array.sort() to find nearest neighbours. Array sorting and
-  // distance calculations are standard JavaScript / p5.js techniques.
-  // (The idea of "connect each wheel to its nearest neighbours" is
-  //  a common generative design strategy, not tied to a specific tutorial.)
   generateBeadArcs(wheelsIn, neighborsPerWheel = 2) {
     const arcs = [];
     for (let i = 0; i < wheelsIn.length; i++) {
@@ -633,7 +600,7 @@ const LayoutSystem = {
       for (const c of candidates) {
         if (added >= neighborsPerWheel) break;
         const j = c.j;
-        if (j < i) continue; // avoid duplicate arcs in both directions
+        if (j < i) continue;
         const w2 = wheelsIn[j];
         const d = c.d;
 
@@ -665,7 +632,6 @@ const LayoutSystem = {
     return arcs;
   },
 
-  // Delegate background dot generation to DotSystem
   generateBackgroundDots(wheelsIn) {
     return DotSystem.generateBackgroundDots(wheelsIn);
   }
