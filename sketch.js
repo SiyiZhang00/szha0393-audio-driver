@@ -28,13 +28,10 @@ let wheelRotation = 0; // Global rotation angle applied to all wheels
 let beadScale = 1;     // Global scale factor for beads (outer rings + bead arcs)
 let bgScale = 1;       // Global scale factor for background dots
 
-// ------------------------
-// Artwork globals (Week 10 style: global arrays of objects)
-// ------------------------
-let SEED = 0;          // Random seed used for reproducible layouts
-let wheels = [];       // Array of Wheel objects
-let beadArcs = [];     // Array of BeadArc objects
-let backgroundDots = [];// Array of background dot data
+let SEED = 0;
+let wheels = [];
+let beadArcs = [];
+let backgroundDots = [];
 
 // ======================================================
 // preload – load audio before setup() (must match project path)
@@ -48,14 +45,10 @@ function preload() {
   song = loadSound("assets/Cipher2.wav");
 }
 
-// ======================================================
-// setup – initial canvas + audio + layout
-// ======================================================
 function setup() {
-  // Standard p5.js canvas, using the full browser window
   createCanvas(windowWidth, windowHeight);
-  colorMode(HSB, 360, 100, 100); // Use HSB mode for easier hue shifts
-  noStroke();                    // We draw filled shapes only
+  colorMode(HSB, 360, 100, 100); 
+  noStroke();
 
   // Amplitude analyser (Week 11 content):
   //   • analyser = new p5.Amplitude()
@@ -76,21 +69,12 @@ function setup() {
   );
   playButton.mousePressed(togglePlay);
 
-  // Generate initial static composition (same idea as Week 10 group static sketch)
   regenerate(false);
-
-  // Key point: by default we do not loop; we draw only one frame → fully static image,
-  // until the user clicks "Play" (then loop() is enabled).
   noLoop();
 }
 
-// ======================================================
-// draw – draws one frame. In noLoop() mode, only called when we call redraw().
-// When song is playing (loop() mode), it is called every frame.
-// ======================================================
 function draw() {
-  background(200, 40, 20); // Deep teal / blue-green background to match Pacita-inspired palette
-
+  background(200, 40, 20); 
   // --------------------------
   // 1. If music is playing, update audio-driven parameters
   // --------------------------
@@ -130,15 +114,10 @@ function draw() {
   // 2. Draw static structure + audio deformation
   // --------------------------
 
-  // Background scattered dots (size controlled by bgScale)
   DotSystem.drawBackgroundDots(backgroundDots);
-
-  // Bead arcs (size controlled by beadScale)
-  for (const arc of beadArcs) {
-    arc.display();
+  for (const arc of beadArcs) {arc.display();
   }
 
-  // Wheels (rotation controlled by wheelRotation, beads scaled by beadScale)
   for (const w of wheels) {
     w.display();
   }
